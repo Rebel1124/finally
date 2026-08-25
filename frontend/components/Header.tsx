@@ -11,11 +11,12 @@ const STATUS_STYLES: Record<ConnectionStatus, { color: string; label: string }> 
 
 interface HeaderProps {
   totalValue: number;
+  equity: number;
   cashBalance: number;
   status: ConnectionStatus;
 }
 
-export default function Header({ totalValue, cashBalance, status }: HeaderProps) {
+export default function Header({ totalValue, equity, cashBalance, status }: HeaderProps) {
   const { color, label } = STATUS_STYLES[status];
 
   return (
@@ -33,6 +34,12 @@ export default function Header({ totalValue, cashBalance, status }: HeaderProps)
             Portfolio Value
           </div>
           <div className="text-lg font-semibold">{formatCurrency(totalValue)}</div>
+        </div>
+        <div className="text-right">
+          <div className="text-[10px] uppercase tracking-wide text-muted">Equity</div>
+          <div className="text-lg font-semibold text-accent-yellow">
+            {formatCurrency(equity)}
+          </div>
         </div>
         <div className="text-right">
           <div className="text-[10px] uppercase tracking-wide text-muted">Cash</div>

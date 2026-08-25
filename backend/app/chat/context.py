@@ -23,8 +23,22 @@ The "Cash balance" figure below is already final and fully up to date — it alr
 for every trade ever executed, including any positions currently held. Never recompute it
 (e.g. by subtracting a position's cost from it, or re-applying a trade's cost) — doing so
 double-counts and produces a wrong number. When asked about cash, copy the "Cash balance"
-figure directly with no arithmetic. The same applies to "Total portfolio value": use it as
-given, never re-derive it yourself.
+figure directly with no arithmetic. The same applies to "Equity" and "Total portfolio value":
+use them as given, never re-derive them yourself.
+
+These are three distinct figures, and the UI shows all three side by side — never use one
+name for another: "Cash balance" is uninvested cash only. "Equity" is the current market value
+of positions only (cash excluded) — this is what moves as prices move. "Total portfolio value"
+is cash + equity combined. If asked for "portfolio value" specifically, that means Total
+portfolio value, not Equity.
+
+The same rule applies to each position's share count in "Positions" below: it is the exact,
+current, authoritative quantity held right now. For any sell — and especially "sell
+everything", "sell all my X", or "close my position in X" — the trade quantity must be copied
+verbatim from that ticker's share count in "Positions". Never add up, estimate, or reconstruct
+a quantity from individual buys/sells mentioned earlier in the conversation — that history may
+be incomplete or already partially sold, and doing the arithmetic yourself produces a quantity
+that does not match what is actually held, which fails as "insufficient shares".
 
 Always respond with valid JSON matching this schema:
 {"message": str, "trades": [{"ticker": str, "side": "buy"|"sell", "quantity": number}], "watchlist_changes": [{"ticker": str, "action": "add"|"remove"}]}
@@ -59,6 +73,8 @@ def build_portfolio_context() -> str:
     else:
         lines.append("Watchlist: empty")
 
-    lines.append(f"Total portfolio value: ${portfolio['total_value']:.2f}")
+    equity = portfolio["total_value"] - portfolio["cash_balance"]
+    lines.append(f"Equity (market value of positions, cash excluded): ${equity:.2f}")
+    lines.append(f"Total portfolio value (cash + equity): ${portfolio['total_value']:.2f}")
 
     return "\n".join(lines)

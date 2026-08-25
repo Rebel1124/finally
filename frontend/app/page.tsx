@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import * as api from "@/lib/api";
 import { makeId } from "@/lib/id";
 import { usePriceStream } from "@/lib/usePriceStream";
@@ -23,6 +23,34 @@ export default function Home() {
   const [portfolio, setPortfolio] = useState<Portfolio>(EMPTY_PORTFOLIO);
   const [portfolioHistory, setPortfolioHistory] = useState<PortfolioSnapshot[]>([]);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+
+  // Cash only changes when a trade executes (comes straight from the last
+  // portfolio fetch), but position values should track live SSE prices tick
+  // by tick so the header and portfolio views move with the market between
+  // trades, not just after them.
+  const livePositions = useMemo(
+    () =>
+      portfolio.positions.map((p) => {
+        const livePrice = prices[p.ticker]?.price ?? p.current_price;
+        const marketValue = p.quantity * livePrice;
+        const unrealizedPnl = marketValue - p.quantity * p.avg_cost;
+        const unrealizedPnlPercent =
+          p.avg_cost && p.quantity ? (unrealizedPnl / (p.quantity * p.avg_cost)) * 100 : 0;
+        return {
+          ...p,
+          current_price: livePrice,
+          market_value: marketValue,
+          unrealized_pnl: unrealizedPnl,
+          unrealized_pnl_percent: unrealizedPnlPercent,
+        };
+      }),
+    [portfolio.positions, prices],
+  );
+  const equity = useMemo(
+    () => livePositions.reduce((sum, p) => sum + p.market_value, 0),
+    [livePositions],
+  );
+  const liveTotalValue = portfolio.cash_balance + equity;
 
   const refreshPortfolio = useCallback(() => {
     Promise.all([api.getPortfolio(), api.getPortfolioHistory()])
@@ -94,7 +122,8 @@ export default function Home() {
   return (
     <div className="flex h-screen flex-col overflow-hidden">
       <Header
-        totalValue={portfolio.total_value}
+        totalValue={liveTotalValue}
+        equity={equity}
         cashBalance={portfolio.cash_balance}
         status={status}
       />
@@ -116,7 +145,7 @@ export default function Home() {
           <MainChart ticker={selectedTicker} data={selectedTicker ? (history[selectedTicker] ?? []) : []} />
           <div className="grid min-h-0 grid-cols-2 border-b border-border">
             <div className="min-h-0 border-r border-border">
-              <PortfolioHeatmap positions={portfolio.positions} />
+              <PortfolioHeatmap positions={livePositions} />
             </div>
             <div className="min-h-0">
               <PnLChart snapshots={portfolioHistory} />
@@ -124,7 +153,7 @@ export default function Home() {
           </div>
           <div className="min-h-0 border-b border-border">
             <PositionsTable
-              positions={portfolio.positions}
+              positions={livePositions}
               selectedTicker={selectedTicker}
               onSelect={setSelectedTicker}
             />

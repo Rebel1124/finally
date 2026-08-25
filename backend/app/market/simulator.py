@@ -113,12 +113,13 @@ class GBMSimulator:
                     "up" if shock_sign > 0 else "down",
                 )
 
-            result[ticker] = round(self._prices[ticker], 2)
+            result[ticker] = self._prices[ticker]
 
         return result
 
     def add_ticker(self, ticker: str) -> None:
         """Add a ticker to the simulation. Rebuilds the correlation matrix."""
+        ticker = ticker.upper().strip()
         if ticker in self._prices:
             return
         self._add_ticker_internal(ticker)
@@ -126,6 +127,7 @@ class GBMSimulator:
 
     def remove_ticker(self, ticker: str) -> None:
         """Remove a ticker from the simulation. Rebuilds the correlation matrix."""
+        ticker = ticker.upper().strip()
         if ticker not in self._prices:
             return
         self._tickers.remove(ticker)
@@ -135,7 +137,7 @@ class GBMSimulator:
 
     def get_price(self, ticker: str) -> float | None:
         """Current price for a ticker, or None if not tracked."""
-        return self._prices.get(ticker)
+        return self._prices.get(ticker.upper().strip())
 
     def get_tickers(self) -> list[str]:
         """Return the list of currently tracked tickers."""
@@ -145,6 +147,7 @@ class GBMSimulator:
 
     def _add_ticker_internal(self, ticker: str) -> None:
         """Add a ticker without rebuilding Cholesky (for batch initialization)."""
+        ticker = ticker.upper().strip()
         if ticker in self._prices:
             return
         self._tickers.append(ticker)
@@ -223,6 +226,7 @@ class SimulatorDataSource(MarketDataSource):
         )
         # Seed the cache with initial prices so SSE has data immediately
         for ticker in tickers:
+            ticker = ticker.upper().strip()
             price = self._sim.get_price(ticker)
             if price is not None:
                 self._cache.update(ticker=ticker, price=price)
@@ -240,6 +244,7 @@ class SimulatorDataSource(MarketDataSource):
         logger.info("Simulator stopped")
 
     async def add_ticker(self, ticker: str) -> None:
+        ticker = ticker.upper().strip()
         if self._sim:
             self._sim.add_ticker(ticker)
             # Seed cache immediately so the ticker has a price right away
@@ -249,6 +254,7 @@ class SimulatorDataSource(MarketDataSource):
             logger.info("Simulator: added ticker %s", ticker)
 
     async def remove_ticker(self, ticker: str) -> None:
+        ticker = ticker.upper().strip()
         if self._sim:
             self._sim.remove_ticker(ticker)
         self._cache.remove(ticker)

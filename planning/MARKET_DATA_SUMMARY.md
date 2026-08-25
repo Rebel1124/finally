@@ -44,7 +44,7 @@ MarketDataSource (ABC)
 
 ## Test Suite
 
-**73 tests, all passing.** 6 test modules in `backend/tests/market/`.
+**83 tests, all passing.** 7 test modules in `backend/tests/market/`.
 
 | Module | Tests | Coverage |
 |--------|-------|----------|
@@ -53,9 +53,11 @@ MarketDataSource (ABC)
 | test_simulator.py | 17 | simulator.py: 98% |
 | test_simulator_source.py | 10 | (integration tests) |
 | test_factory.py | 7 | factory.py: 100% |
-| test_massive.py | 13 | massive_client.py: 56% (expected — API methods mocked) |
+| test_massive.py | 14 | massive_client.py: 94% |
+| test_stream.py | 9 | stream.py: 92% |
 
-Overall coverage: 84%.
+Overall coverage: 97%. See `planning/MARKET_DATA.md` for the independent review that closed the
+`test_stream.py` gap and found/fixed a critical bug in the Massive timestamp parsing.
 
 ## Code Review & Fixes Applied
 
@@ -68,6 +70,27 @@ A comprehensive code review identified 7 issues. All were resolved:
 5. **Correlation constants cleaned up** — removed unused `DEFAULT_CORR`, consolidated into `CROSS_GROUP_CORR`
 6. **Unused test imports removed** — `pytest`, `math`, `asyncio` cleaned from 4 test files
 7. **Massive test mocks fixed** — `source._client` set in tests, patches target correct names
+
+### Second review pass (`planning/MARKET_DATA.md`)
+
+A follow-up independent review, cross-checked against the actual installed `massive` SDK rather
+than its docs, found and fixed:
+
+1. **Critical: wrong timestamp field/unit in `massive_client.py`** — code read
+   `snap.last_trade.timestamp` (doesn't exist on the installed SDK's `LastTrade` model) and
+   divided by 1000; fixed to read `sip_timestamp` (nanoseconds) and divide by `1e9`. The bug was
+   invisible to the mocked test suite, since `MagicMock` accepts any attribute name — a new test
+   (`test_poll_updates_cache_using_real_sdk_models`) now exercises real `massive` model classes.
+2. **Added `tests/market/test_stream.py`** (9 tests) — the SSE endpoint had zero dedicated
+   coverage before this pass.
+3. **Ticker case normalization** — `SimulatorDataSource`/`GBMSimulator` now normalize to
+   `.upper().strip()` like `MassiveDataSource` already did, so watchlist behavior is consistent
+   regardless of active source.
+4. **Removed deprecated `event_loop_policy` fixture** from `conftest.py` (was firing a
+   `DeprecationWarning` on every test; redundant with `asyncio_mode = "auto"`).
+5. **Removed redundant rounding** in `GBMSimulator.step()` — `PriceCache.update()` already rounds
+   on write; the simulator's own internal price state was never rounded, so this was a pointless
+   extra `round()` on the returned dict only.
 
 ## Demo
 

@@ -107,11 +107,12 @@ for snap in snapshots:
 ```
 
 `get_snapshot_all` is synchronous (blocking network I/O) — in an asyncio app, run it via
-`asyncio.to_thread(...)` rather than calling it directly on the event loop. Note `timestamp` is
-Unix **nanoseconds** for `last_trade` in the raw REST payload, but the Python client's
-`last_trade.timestamp` attribute is documented/observed as milliseconds — convert defensively
-(divide by the right factor and sanity-check against `time.time()`) rather than assuming one
-unit; FinAlly's `massive_client.py` divides by 1000 assuming milliseconds.
+`asyncio.to_thread(...)` rather than calling it directly on the event loop. The typed Python
+client's `LastTrade` model (installed `massive` v2.2.0) has **no `.timestamp` attribute** — the
+raw payload's nanosecond `t` field is exposed as `last_trade.sip_timestamp` instead. There is no
+millisecond-timestamp attribute on this model; verified directly against the installed SDK
+(`massive.rest.models.snapshot.LastTrade`), not just its docs. FinAlly's `massive_client.py` reads
+`last_trade.sip_timestamp` and divides by `1e9` to get Unix seconds.
 
 ## Endpoint 2: Unified Snapshot (alternative, not used)
 

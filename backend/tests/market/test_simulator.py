@@ -120,12 +120,12 @@ class TestGBMSimulator:
         """Test that default dt is a reasonable small value."""
         assert 0 < GBMSimulator.DEFAULT_DT < 0.0001
 
-    def test_prices_rounded_to_two_decimals(self):
-        """Test that prices are rounded to 2 decimal places."""
+    def test_step_result_matches_internal_state(self):
+        """step() returns the same full-precision value get_price() sees.
+
+        Rounding for display/storage is PriceCache's responsibility (see
+        test_cache.py::test_price_rounding), not the simulator's.
+        """
         sim = GBMSimulator(tickers=["AAPL"])
         result = sim.step()
-        price_str = str(result["AAPL"])
-        # Check that we have at most 2 decimal places
-        if '.' in price_str:
-            decimal_part = price_str.split('.')[1]
-            assert len(decimal_part) <= 2
+        assert result["AAPL"] == sim.get_price("AAPL")

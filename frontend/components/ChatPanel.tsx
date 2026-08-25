@@ -60,7 +60,7 @@ export default function ChatPanel({ messages, onSend }: ChatPanelProps) {
                           <span className={t.side === "buy" ? "text-up" : "text-down"}>
                             {t.side === "buy" ? "Bought" : "Sold"}
                           </span>{" "}
-                          {t.quantity} {t.ticker} @ {formatCurrency(t.price)}
+                          {t.quantity} {t.ticker} @ {formatCurrency(t.price ?? 0)}
                         </>
                       ) : (
                         <span className="text-down">

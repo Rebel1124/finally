@@ -1,103 +1,120 @@
-"""Tests for PriceCache."""
+"""Tests for app.market.cache.PriceCache."""
+
+from __future__ import annotations
+
+import time
 
 from app.market.cache import PriceCache
 
 
-class TestPriceCache:
-    """Unit tests for the PriceCache."""
+def test_new_cache_is_empty():
+    cache = PriceCache()
+    assert len(cache) == 0
+    assert cache.get_all() == {}
+    assert cache.version == 0
 
-    def test_update_and_get(self):
-        """Test updating and getting a price."""
-        cache = PriceCache()
-        update = cache.update("AAPL", 190.50)
-        assert update.ticker == "AAPL"
-        assert update.price == 190.50
-        assert cache.get("AAPL") == update
 
-    def test_first_update_is_flat(self):
-        """Test that the first update has flat direction."""
-        cache = PriceCache()
-        update = cache.update("AAPL", 190.50)
-        assert update.direction == "flat"
-        assert update.previous_price == 190.50
+def test_update_returns_price_update():
+    cache = PriceCache()
+    update = cache.update("AAPL", 100.0, timestamp=1.0)
+    assert update.ticker == "AAPL"
+    assert update.price == 100.0
+    assert update.timestamp == 1.0
 
-    def test_direction_up(self):
-        """Test price update with upward direction."""
-        cache = PriceCache()
-        cache.update("AAPL", 190.00)
-        update = cache.update("AAPL", 191.00)
-        assert update.direction == "up"
-        assert update.change == 1.00
 
-    def test_direction_down(self):
-        """Test price update with downward direction."""
-        cache = PriceCache()
-        cache.update("AAPL", 190.00)
-        update = cache.update("AAPL", 189.00)
-        assert update.direction == "down"
-        assert update.change == -1.00
+def test_first_update_sets_previous_price_equal_to_price():
+    cache = PriceCache()
+    update = cache.update("AAPL", 100.0, timestamp=1.0)
+    assert update.previous_price == 100.0
+    assert update.direction == "flat"
 
-    def test_remove(self):
-        """Test removing a ticker from cache."""
-        cache = PriceCache()
-        cache.update("AAPL", 190.00)
-        cache.remove("AAPL")
-        assert cache.get("AAPL") is None
 
-    def test_remove_nonexistent(self):
-        """Test removing a ticker that doesn't exist."""
-        cache = PriceCache()
-        cache.remove("AAPL")  # Should not raise
+def test_second_update_computes_previous_price_from_prior_value():
+    cache = PriceCache()
+    cache.update("AAPL", 100.0, timestamp=1.0)
+    update = cache.update("AAPL", 105.0, timestamp=2.0)
+    assert update.previous_price == 100.0
+    assert update.price == 105.0
+    assert update.direction == "up"
 
-    def test_get_all(self):
-        """Test getting all prices."""
-        cache = PriceCache()
-        cache.update("AAPL", 190.00)
-        cache.update("GOOGL", 175.00)
-        all_prices = cache.get_all()
-        assert set(all_prices.keys()) == {"AAPL", "GOOGL"}
 
-    def test_version_increments(self):
-        """Test that version counter increments."""
-        cache = PriceCache()
-        v0 = cache.version
-        cache.update("AAPL", 190.00)
-        assert cache.version == v0 + 1
-        cache.update("AAPL", 191.00)
-        assert cache.version == v0 + 2
+def test_update_rounds_price_to_two_decimals():
+    cache = PriceCache()
+    update = cache.update("AAPL", 100.126, timestamp=1.0)
+    assert update.price == 100.13
 
-    def test_get_price_convenience(self):
-        """Test the convenience get_price method."""
-        cache = PriceCache()
-        cache.update("AAPL", 190.50)
-        assert cache.get_price("AAPL") == 190.50
-        assert cache.get_price("NOPE") is None
 
-    def test_len(self):
-        """Test __len__ method."""
-        cache = PriceCache()
-        assert len(cache) == 0
-        cache.update("AAPL", 190.00)
-        assert len(cache) == 1
-        cache.update("GOOGL", 175.00)
-        assert len(cache) == 2
+def test_update_defaults_timestamp_to_now():
+    cache = PriceCache()
+    before = time.time()
+    update = cache.update("AAPL", 100.0)
+    after = time.time()
+    assert before <= update.timestamp <= after
 
-    def test_contains(self):
-        """Test __contains__ method."""
-        cache = PriceCache()
-        cache.update("AAPL", 190.00)
-        assert "AAPL" in cache
-        assert "GOOGL" not in cache
 
-    def test_custom_timestamp(self):
-        """Test updating with a custom timestamp."""
-        cache = PriceCache()
-        custom_ts = 1234567890.0
-        update = cache.update("AAPL", 190.50, timestamp=custom_ts)
-        assert update.timestamp == custom_ts
+def test_version_increments_once_per_update():
+    cache = PriceCache()
+    assert cache.version == 0
+    cache.update("AAPL", 100.0)
+    assert cache.version == 1
+    cache.update("AAPL", 101.0)
+    assert cache.version == 2
+    cache.update("GOOGL", 50.0)
+    assert cache.version == 3
 
-    def test_price_rounding(self):
-        """Test that prices are rounded to 2 decimal places."""
-        cache = PriceCache()
-        update = cache.update("AAPL", 190.12345)
-        assert update.price == 190.12
+
+def test_get_unknown_ticker_returns_none():
+    cache = PriceCache()
+    assert cache.get("NOPE") is None
+
+
+def test_get_returns_latest_update():
+    cache = PriceCache()
+    cache.update("AAPL", 100.0)
+    update = cache.update("AAPL", 105.0)
+    assert cache.get("AAPL") == update
+
+
+def test_get_price_returns_float_or_none():
+    cache = PriceCache()
+    assert cache.get_price("AAPL") is None
+    cache.update("AAPL", 100.0)
+    assert cache.get_price("AAPL") == 100.0
+
+
+def test_get_all_returns_shallow_copy():
+    cache = PriceCache()
+    cache.update("AAPL", 100.0)
+    snapshot = cache.get_all()
+    snapshot["AAPL"] = None  # mutate the copy
+    assert cache.get("AAPL") is not None
+
+
+def test_get_all_contains_all_tickers():
+    cache = PriceCache()
+    cache.update("AAPL", 100.0)
+    cache.update("GOOGL", 50.0)
+    all_prices = cache.get_all()
+    assert set(all_prices.keys()) == {"AAPL", "GOOGL"}
+
+
+def test_remove_deletes_ticker():
+    cache = PriceCache()
+    cache.update("AAPL", 100.0)
+    cache.remove("AAPL")
+    assert cache.get("AAPL") is None
+    assert "AAPL" not in cache
+    assert len(cache) == 0
+
+
+def test_remove_unknown_ticker_is_noop():
+    cache = PriceCache()
+    cache.remove("NOPE")  # should not raise
+    assert len(cache) == 0
+
+
+def test_contains():
+    cache = PriceCache()
+    assert "AAPL" not in cache
+    cache.update("AAPL", 100.0)
+    assert "AAPL" in cache

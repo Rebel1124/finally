@@ -1,1 +1,1 @@
-"""FinAlly backend application."""
+"""FinAlly backend application package."""

@@ -1,55 +1,55 @@
 # FinAlly Backend
 
-FastAPI backend for the FinAlly AI Trading Workstation.
+FastAPI (Python/`uv`) backend for the FinAlly AI trading workstation. See
+[`../planning/PLAN.md`](../planning/PLAN.md) for the full project specification and
+[`../planning/MARKET_DATA_DESIGN.md`](../planning/MARKET_DATA_DESIGN.md) for the design of the
+market data subsystem implemented here.
 
-## Structure
+## Status
 
-- `app/` - Application code
-  - `market/` - Market data subsystem
-    - `models.py` - PriceUpdate dataclass
-    - `cache.py` - Thread-safe price cache
-    - `interface.py` - MarketDataSource abstract interface
-    - `simulator.py` - GBM-based market simulator
-    - `massive_client.py` - Massive/Polygon.io API client
-    - `factory.py` - Data source factory
-    - `stream.py` - SSE streaming endpoint
-    - `seed_prices.py` - Default ticker prices and parameters
+The market data subsystem (`app/market/`) is implemented and tested: the unified
+`MarketDataSource` interface, the GBM price simulator, and the Massive (Polygon.io) REST client.
+The rest of the backend (database, portfolio, chat, HTTP app) is not yet built.
 
-- `tests/` - Unit and integration tests
-  - `market/` - Market data tests
-
-## Running Tests
+## Setup
 
 ```bash
-# Install dependencies
-uv sync --dev
-
-# Run all tests
-uv run pytest
-
-# Run with coverage
-uv run pytest --cov=app --cov-report=html
-
-# Run specific test file
-uv run pytest tests/market/test_simulator.py
-
-# Run with verbose output
-uv run pytest -v
+cd backend
+uv sync --extra dev
 ```
 
-## Environment Variables
-
-- `MASSIVE_API_KEY` - Optional. If set, use real market data from Massive API. If not set, use the built-in simulator.
-
-## Development
+## Running tests
 
 ```bash
-# Install dependencies
-uv sync --dev
+uv run --extra dev pytest -v
+uv run --extra dev pytest --cov=app --cov-report=term-missing
+```
 
-# Run linter
-uv run ruff check .
+## Package layout
 
-# Format code
-uv run ruff format .
+```
+app/
+  market/
+    models.py         # PriceUpdate — immutable price snapshot
+    cache.py           # PriceCache — thread-safe in-memory price store
+    interface.py        # MarketDataSource — abstract contract
+    seed_prices.py       # Seed prices, GBM params, correlation groups
+    simulator.py          # GBMSimulator + SimulatorDataSource
+    massive_client.py      # MassiveDataSource (Massive/Polygon.io REST poller)
+    factory.py               # create_market_data_source()
+    stream.py                 # SSE endpoint factory
+tests/
+  market/                     # Unit tests for the above
+```
+
+## Usage
+
+```python
+from app.market import PriceCache, create_market_data_source
+
+cache = PriceCache()
+source = create_market_data_source(cache)  # simulator, or Massive if MASSIVE_API_KEY is set
+await source.start(["AAPL", "GOOGL", "MSFT"])
+
+price = cache.get_price("AAPL")
 ```

@@ -1,59 +1,20 @@
-# Backend — Developer Guide
+# Backend — Agent Notes
 
-## Project Setup
+This is a `uv`-managed FastAPI Python project. See [`../planning/PLAN.md`](../planning/PLAN.md)
+for the full specification and [`../planning/MARKET_DATA_DESIGN.md`](../planning/MARKET_DATA_DESIGN.md)
+for the market data subsystem design.
 
-```bash
-cd backend
-uv sync --extra dev   # Install all dependencies including test/lint tools
-```
-
-## Market Data API
-
-The market data subsystem lives in `app/market/`. Use these imports:
-
-```python
-from app.market import PriceCache, PriceUpdate, MarketDataSource, create_market_data_source
-```
-
-### Core Types
-
-- **`PriceUpdate`** — Immutable dataclass: `ticker`, `price`, `previous_price`, `timestamp`, plus properties `change`, `change_percent`, `direction` ("up"/"down"/"flat"), and `to_dict()` for JSON serialization.
-
-- **`PriceCache`** — Thread-safe in-memory store. Key methods:
-  - `update(ticker, price, timestamp=None) -> PriceUpdate`
-  - `get(ticker) -> PriceUpdate | None`
-  - `get_price(ticker) -> float | None`
-  - `get_all() -> dict[str, PriceUpdate]`
-  - `remove(ticker)`
-  - `version` property — monotonic counter, increments on every update (for SSE change detection)
-
-- **`MarketDataSource`** — Abstract interface implemented by `SimulatorDataSource` and `MassiveDataSource`. Lifecycle: `start(tickers)` -> `add_ticker()` / `remove_ticker()` -> `stop()`.
-
-- **`create_market_data_source(cache)`** — Factory. Returns `MassiveDataSource` if `MASSIVE_API_KEY` is set, otherwise `SimulatorDataSource`.
-
-### SSE Streaming
-
-```python
-from app.market import create_stream_router
-
-router = create_stream_router(price_cache)  # Returns FastAPI APIRouter
-# Endpoint: GET /api/stream/prices (text/event-stream)
-```
-
-### Seed Data
-
-Default tickers: AAPL, GOOGL, MSFT, AMZN, TSLA, NVDA, META, JPM, V, NFLX. Seed prices and per-ticker volatility/drift params are in `app/market/seed_prices.py`.
-
-## Running Tests
+## Commands
 
 ```bash
-uv run --extra dev pytest -v              # All tests
-uv run --extra dev pytest --cov=app       # With coverage
-uv run --extra dev ruff check app/ tests/ # Lint
+uv sync --extra dev             # install dependencies
+uv run --extra dev pytest -v    # run tests
 ```
 
-## Demo
+## Current state
 
-```bash
-uv run market_data_demo.py   # Live terminal dashboard with simulated prices
-```
+`app/market/` — market data subsystem (unified `MarketDataSource` interface, GBM simulator,
+Massive API client, SSE stream) — implemented, see `tests/market/` for coverage.
+
+Not yet built: SQLite database layer, portfolio/trade endpoints, watchlist endpoints, LLM chat
+integration, `app/main.py` FastAPI app wiring it all together. See PLAN.md sections 7-9 for specs.

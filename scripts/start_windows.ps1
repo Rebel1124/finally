@@ -20,6 +20,11 @@ if ($existing) {
 
 New-Item -ItemType Directory -Force -Path "db" | Out-Null
 
+if ($args -contains "--reset") {
+    Write-Host "Resetting portfolio data (--reset): removing db/finally.db..."
+    Remove-Item -Force -ErrorAction SilentlyContinue "db/finally.db", "db/finally.db-journal"
+}
+
 docker run -d `
     --name $ContainerName `
     -v "${PWD}\db:/app/db" `

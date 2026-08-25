@@ -281,7 +281,7 @@ All tables include a `user_id` column defaulting to `"default"`. This is hardcod
 
 ## 9. LLM Integration
 
-When writing code to make calls to LLMs, use cerebras-inference skill to use LiteLLM via OpenRouter to the `openrouter/openai/gpt-oss-120b` model with Cerebras as the inference provider. Structured Outputs should be used to interpret the results.
+When writing code to make calls to LLMs, use the cerebras skill to use LiteLLM via OpenRouter to the `openrouter/openai/gpt-oss-120b` model with Cerebras as the inference provider. Structured Outputs should be used to interpret the results.
 
 There is an OPENROUTER_API_KEY in the .env file in the project root.
 
@@ -292,7 +292,7 @@ When the user sends a chat message, the backend:
 1. Loads the user's current portfolio context (cash, positions with P&L, watchlist with live prices, total portfolio value)
 2. Loads recent conversation history from the `chat_messages` table
 3. Constructs a prompt with a system message, portfolio context, conversation history, and the user's new message
-4. Calls the LLM via LiteLLM → OpenRouter, requesting structured output, using the cerebras-inference skill
+4. Calls the LLM via LiteLLM → OpenRouter, requesting structured output, using the cerebras skill
 5. Parses the complete structured JSON response
 6. Auto-executes any trades or watchlist changes specified in the response
 7. Stores the message and executed actions in `chat_messages`
@@ -454,3 +454,26 @@ The container is designed to deploy to AWS App Runner, Render, or any container 
 - Portfolio visualization: heatmap renders with correct colors, P&L chart has data points
 - AI chat (mocked): send a message, receive a response, trade execution appears inline
 - SSE resilience: disconnect and verify reconnection
+
+---
+
+## 13. Review Notes
+
+### Critical — action before committing
+
+- **Real API keys appear to be hardcoded in Section 5.** The `OPENROUTER_API_KEY` and `MASSIVE_API_KEY` values in the Environment Variables block are not placeholders — `OPENROUTER_API_KEY` here matches the actual key currently in the project's (gitignored) `.env` file. Committing this would leak live credentials into git history permanently, on a doc that's meant to be a shareable spec agents read. The previous committed version of this section correctly used placeholders (`your-openrouter-api-key-here`, empty `MASSIVE_API_KEY`). Recommend reverting Section 5 to placeholders and rotating both keys if they were ever pushed anywhere, since git history is hard to scrub after the fact.
+
+### Questions / clarifications
+
+- **Main chart history source (Section 10).** Sparklines are explicitly "accumulated on the frontend from the SSE stream since page load." Is the main detail chart the same — client-accumulated only, resetting on refresh — or does it read from a backend history endpoint? The API table (Section 8) has no `GET /api/prices/history` or similar, so on a fresh page load / browser refresh the main chart would presumably start empty until enough SSE ticks arrive. Worth stating explicitly, since it affects whether a "click a ticker → see a larger chart" demo looks good on a cold reload.
+- **Chat history window (Section 9, step 2).** "Loads recent conversation history from `chat_messages`" doesn't say how much — last N messages, last N tokens, or full history? Table `chat_messages` is append-only, so this matters for both prompt cost and behavior once a demo session has a long conversation.
+- **SSE push cadence vs. Massive polling interval (Sections 6, 8).** SSE pushes "at a regular cadence (~500ms)" but the Massive source only refreshes its cache every 2-15s depending on tier. `MARKET_DATA_SUMMARY.md` documents a version counter on the price cache for change detection, but PLAN.md's own Section 6 doesn't mention it or say whether unchanged prices are still re-sent over SSE. If they are, that's fine (no-op on the frontend since price is identical); worth a one-line clarification so a future reader isn't confused about why "500ms cadence" and "15s polling" coexist.
+- **Ticker validation on watchlist add (Section 8, `POST /api/watchlist`).** No mention of validating the ticker symbol against a known list before insertion. With the simulator, an unrecognized ticker has no seed price/GBM params — what happens? With Massive, an invalid symbol would just return no data. Worth a sentence on expected behavior (reject with 400, or accept and show "no data").
+- **Watchlist size limit.** No stated cap on how many tickers a user can add. Not urgent given Massive polling is a single batched call regardless of ticker count, but an unbounded watchlist still means unbounded SSE payload size and unbounded frontend sparkline memory (all client-accumulated, never pruned per Section 6). Worth a soft cap (e.g., 20-30 tickers) if only to keep the terminal UI legible.
+- **Auth-free design in an "Optional Cloud Deployment" (Sections 7, 11).** Section 7 hardcodes `user_id = "default"` by design (no auth = no multi-user, intentional simplicity). Section 11 mentions optional deployment to App Runner/Render as a stretch goal. If that stretch goal is pursued, a publicly reachable single-user instance with full trade/chat auto-execution and no auth is worth flagging explicitly as "local/demo only, do not deploy publicly without adding auth" so a future agent doesn't quietly ship it open to the internet.
+
+### Opportunities to simplify
+
+- **`docker-compose.yml` (Section 4) vs. single-container design.** Section 3's whole premise is "single container, single port, no orchestration." A root `docker-compose.yml` described only as "optional convenience wrapper" is fine, but if it just wraps a one-line `docker run`, the `scripts/start_mac.sh` already covers that use case — consider dropping the compose file entirely unless it earns its keep (e.g., wiring the test compose file's patterns for local dev too).
+- **`portfolio_snapshots` on a 30s timer (Section 7).** For a single-user demo app, a snapshot on every trade already captures the events that matter for the P&L chart. A blanket 30s background snapshot adds a scheduled task, plus DB writes, for a case that's mostly redundant when the portfolio is idle (price moves don't change realized snapshots between trades unless the chart is meant to show live unrealized P&L drift too — if so, say that explicitly, since it changes the rationale for the timer).
+- **`db/.gitkeep` plus Docker named volume (Sections 4, 11).** The directory structure documents `db/` as a repo directory with `.gitkeep`, while Section 11's Docker command mounts a *named volume* (`finally-data`), not a bind mount to `./db`. As written, the repo's `db/` folder is unrelated to where the container actually persists data — worth reconciling (either bind-mount `./db:/app/db` to match the stated directory structure, or drop `db/` from the repo structure diagram since a named volume owns the data instead).

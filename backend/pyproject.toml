@@ -9,6 +9,8 @@ dependencies = [
     "numpy>=1.26.0",
     "massive>=1.0.0",
     "uvicorn[standard]>=0.32.0",
+    "python-dotenv>=1.2.3",
+    "litellm>=1.98.0",
 ]
 
 [project.optional-dependencies]

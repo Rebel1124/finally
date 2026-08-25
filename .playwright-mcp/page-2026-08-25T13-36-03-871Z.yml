@@ -1,0 +1,179 @@
+- generic [active] [ref=f5e1]:
+  - generic [ref=f5e2]:
+    - banner [ref=f5e3]:
+      - generic [ref=f5e4]:
+        - generic [ref=f5e5]: FinAlly
+        - generic [ref=f5e6]: AI Trading Workstation
+      - generic [ref=f5e7]:
+        - generic [ref=f5e8]:
+          - generic [ref=f5e9]: Portfolio Value
+          - generic [ref=f5e10]: $10,000.42
+        - generic [ref=f5e11]:
+          - generic [ref=f5e12]: Cash
+          - generic [ref=f5e13]: $8,740.03
+        - generic "Connected" [ref=f5e14]
+    - generic [ref=f5e17]:
+      - complementary [ref=f5e18]:
+        - generic [ref=f5e19]:
+          - generic [ref=f5e20]:
+            - heading "Watchlist" [level=2] [ref=f5e21]
+            - generic [ref=f5e22]:
+              - textbox "Ticker" [ref=f5e23]
+              - button "Add" [disabled] [ref=f5e24]
+          - table [ref=f5e26]:
+            - rowgroup [ref=f5e27]:
+              - row [ref=f5e28]:
+                - columnheader "Ticker" [ref=f5e29]
+                - columnheader "Price" [ref=f5e30]
+                - columnheader "Chg %" [ref=f5e31]
+                - columnheader "Chart" [ref=f5e32]
+                - columnheader [ref=f5e33]
+            - rowgroup [ref=f5e34]:
+              - row [ref=f5e362] [cursor=pointer]:
+                - cell "AAPL" [ref=f5e36]
+                - cell "190.13" [ref=f5e363]
+                - cell "-0.01%" [ref=f5e364]
+                - cell [ref=f5e217]:
+                  - application [ref=f5e220]
+                - cell [ref=f5e41]:
+                  - button "Remove AAPL" [ref=f5e42]: ×
+              - row [ref=f5e367] [cursor=pointer]:
+                - cell "AMZN" [ref=f5e44]
+                - cell "185.05" [ref=f5e368]
+                - cell "0.00%" [ref=f5e369]
+                - cell [ref=f5e226]:
+                  - application [ref=f5e229]
+                - cell [ref=f5e49]:
+                  - button "Remove AMZN" [ref=f5e50]: ×
+              - row [ref=f5e372] [cursor=pointer]:
+                - cell "GOOGL" [ref=f5e52]
+                - cell "181.92" [ref=f5e373]
+                - cell "-0.01%" [ref=f5e374]
+                - cell [ref=f5e237]:
+                  - application [ref=f5e240]
+                - cell [ref=f5e57]:
+                  - button "Remove GOOGL" [ref=f5e58]: ×
+              - row [ref=f5e377] [cursor=pointer]:
+                - cell "JPM" [ref=f5e60]
+                - cell "194.93" [ref=f5e378]
+                - cell "-0.01%" [ref=f5e379]
+                - cell [ref=f5e247]:
+                  - application [ref=f5e250]
+                - cell [ref=f5e65]:
+                  - button "Remove JPM" [ref=f5e66]: ×
+              - row [ref=f5e382] [cursor=pointer]:
+                - cell "META" [ref=f5e68]
+                - cell "488.71" [ref=f5e383]
+                - cell "-0.01%" [ref=f5e384]
+                - cell [ref=f5e258]:
+                  - application [ref=f5e261]
+                - cell [ref=f5e73]:
+                  - button "Remove META" [ref=f5e74]: ×
+              - row [ref=f5e387] [cursor=pointer]:
+                - cell "MSFT" [ref=f5e76]
+                - cell "420.13" [ref=f5e388]
+                - cell "0.00%" [ref=f5e389]
+                - cell [ref=f5e269]:
+                  - application [ref=f5e272]
+                - cell [ref=f5e81]:
+                  - button "Remove MSFT" [ref=f5e82]: ×
+              - row [ref=f5e392] [cursor=pointer]:
+                - cell "NFLX" [ref=f5e84]
+                - cell "600.70" [ref=f5e393]
+                - cell "-0.01%" [ref=f5e394]
+                - cell [ref=f5e280]:
+                  - application [ref=f5e283]
+                - cell [ref=f5e89]:
+                  - button "Remove NFLX" [ref=f5e90]: ×
+              - row [ref=f5e397] [cursor=pointer]:
+                - cell "NVDA" [ref=f5e92]
+                - cell "800.93" [ref=f5e398]
+                - cell "+0.00%" [ref=f5e399]
+                - cell [ref=f5e291]:
+                  - application [ref=f5e294]
+                - cell [ref=f5e97]:
+                  - button "Remove NVDA" [ref=f5e98]: ×
+              - row [ref=f5e299] [cursor=pointer]:
+                - cell "TSLA" [ref=f5e100]
+                - cell "238.09" [ref=f5e300]
+                - cell "+0.01%" [ref=f5e102]
+                - cell [ref=f5e301]:
+                  - application [ref=f5e304]
+                - cell [ref=f5e105]:
+                  - button "Remove TSLA" [ref=f5e106]: ×
+              - row [ref=f5e404] [cursor=pointer]:
+                - cell "V" [ref=f5e108]
+                - cell "279.99" [ref=f5e405]
+                - cell "0.00%" [ref=f5e311]
+                - cell [ref=f5e312]:
+                  - application [ref=f5e315]
+                - cell [ref=f5e113]:
+                  - button "Remove V" [ref=f5e114]: ×
+      - main [ref=f5e115]:
+        - generic [ref=f5e116]:
+          - heading "MSFT — Live Price" [level=2] [ref=f5e408]
+          - application [ref=f5e322]:
+            - generic [ref=f5e339]:
+              - generic [ref=f5e340]:
+                - generic [ref=f5e413]: 3:35:57 PM
+                - generic [ref=f5e415]: 3:35:59 PM
+                - generic [ref=f5e417]: 3:36:01 PM
+                - generic [ref=f5e419]: 3:36:03 PM
+              - generic [ref=f5e349]:
+                - generic [ref=f5e421]: "420.10"
+                - generic [ref=f5e423]: "420.11"
+                - generic [ref=f5e425]: "420.12"
+                - generic [ref=f5e427]: "420.13"
+                - generic [ref=f5e429]: "420.14"
+        - generic [ref=f5e121]:
+          - generic [ref=f5e123]:
+            - heading "Portfolio Heatmap" [level=2] [ref=f5e125]
+            - img [ref=f5e129]:
+              - generic [ref=f5e130]:
+                - generic [ref=f5e131]: 0.00%
+                - generic [ref=f5e139]:
+                  - generic [ref=f5e141]: MSFT
+                  - generic [ref=f5e142]: +0.03%
+          - generic [ref=f5e144]:
+            - heading "Portfolio Value" [level=2] [ref=f5e146]
+            - application [ref=f5e150]:
+              - generic [ref=f5e165]:
+                - generic [ref=f5e166]:
+                  - generic [ref=f5e167]: 3:34:41 PM
+                  - generic [ref=f5e169]: 3:35:41 PM
+                - generic [ref=f5e171]:
+                  - generic [ref=f5e172]: $9,999.60
+                  - generic [ref=f5e174]: $10,000.20
+        - generic [ref=f5e177]:
+          - heading "Positions" [level=2] [ref=f5e179]
+          - table [ref=f5e181]:
+            - rowgroup [ref=f5e182]:
+              - row [ref=f5e183]:
+                - columnheader "Ticker" [ref=f5e184]
+                - columnheader "Qty" [ref=f5e185]
+                - columnheader "Avg Cost" [ref=f5e186]
+                - columnheader "Price" [ref=f5e187]
+                - columnheader "P&L" [ref=f5e188]
+                - columnheader "%" [ref=f5e189]
+            - rowgroup [ref=f5e190]:
+              - row [ref=f5e191] [cursor=pointer]:
+                - cell "MSFT" [ref=f5e192]
+                - cell "3" [ref=f5e193]
+                - cell "419.99" [ref=f5e194]
+                - cell "420.13" [ref=f5e195]
+                - cell "$0.42" [ref=f5e196]
+                - cell "+0.03%" [ref=f5e197]
+        - generic [ref=f5e198]:
+          - textbox "Ticker" [ref=f5e199]: MSFT
+          - spinbutton "Qty" [ref=f5e200]
+          - button "Buy" [ref=f5e201]
+          - button "Sell" [ref=f5e202]
+      - complementary [ref=f5e203]:
+        - generic [ref=f5e204]:
+          - heading "AI Assistant" [level=2] [ref=f5e206]
+          - paragraph [ref=f5e208]: Ask FinAlly about your portfolio, or tell it to make a trade.
+          - generic [ref=f5e209]:
+            - textbox "Ask FinAlly…" [ref=f5e210]
+            - button "Send" [disabled] [ref=f5e211]
+  - alert [ref=f5e212]
+  - generic [ref=f5e213]: 3:36:03

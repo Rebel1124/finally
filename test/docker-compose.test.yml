@@ -1,0 +1,27 @@
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    environment:
+      LLM_MOCK: "true"
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"]
+      interval: 2s
+      timeout: 2s
+      retries: 30
+
+  playwright:
+    image: mcr.microsoft.com/playwright:v1.56.0-jammy
+    working_dir: /work
+    volumes:
+      - ..:/work
+    environment:
+      BASE_URL: "http://app:8000"
+    depends_on:
+      app:
+        condition: service_healthy
+    command: >
+      sh -c "cd test && npm install && npx playwright test"

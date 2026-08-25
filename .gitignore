@@ -7,17 +7,20 @@ __pycache__/
 *.so
 
 # Distribution / packaging
+# Anchored to repo root: this is a monorepo, and unanchored patterns like
+# `lib/` or `dist/` would also match legitimate frontend source/build dirs
+# (e.g. frontend/lib/) anywhere in the tree.
 .Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
+/build/
+/develop-eggs/
+/dist/
+/downloads/
+/eggs/
 .eggs/
-lib/
-lib64/
-parts/
-sdist/
+/lib/
+/lib64/
+/parts/
+/sdist/
 var/
 wheels/
 share/python-wheels/
@@ -209,3 +212,6 @@ __marimo__/
 # FinAlly runtime SQLite database (bind-mounted at db/, keep db/.gitkeep tracked)
 /db/*.db
 /db/*.db-journal
+
+# Playwright MCP debug snapshots (local browser automation artifacts)
+/.playwright-mcp/
